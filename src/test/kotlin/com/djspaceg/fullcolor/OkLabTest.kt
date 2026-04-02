@@ -33,10 +33,11 @@ class OkLabTest {
     @Test
     fun `round trip OKLab to sRGB stays within 1 unit`() {
         val original = FullColor.fromRgb(100, 149, 237) // cornflower blue
-        val (r, g, b) = original.toRgb()
-        assertEquals(100, r, "red channel")
-        assertEquals(149, g, "green channel")
-        assertEquals(237, b, "blue channel")
+        val roundTripped = FullColor.fromOkLab(original.toOkLab(), original.alpha)
+        val (r, g, b) = roundTripped.toRgb()
+        assertTrue(abs(r - 100) <= 1, "red channel")
+        assertTrue(abs(g - 149) <= 1, "green channel")
+        assertTrue(abs(b - 237) <= 1, "blue channel")
     }
 
     @Test

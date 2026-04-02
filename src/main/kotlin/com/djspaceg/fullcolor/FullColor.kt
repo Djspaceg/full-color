@@ -327,19 +327,29 @@ class FullColor private constructor(
 
     /**
      * Lighten the color by [amount] (0–1) in OKLab lightness.
-     * An [amount] of 1 always produces white.
+     *
+     * - `amount = 0` → color is unchanged.
+     * - `amount = 1` → shortcut to pure [WHITE] (exact `#ffffff`, alpha preserved).
+     * - Values in between shift OKLab `L` upward by [amount] and clamp to `[0, 1]`.
      */
     fun lighten(amount: Float): FullColor {
-        val newL = (lab.L + amount.coerceIn(0f, 1f)).coerceIn(0f, 1f)
+        val clamped = amount.coerceIn(0f, 1f)
+        if (clamped >= 1f) return WHITE.withAlpha(alpha)
+        val newL = (lab.L + clamped).coerceIn(0f, 1f)
         return FullColor(OkLab(newL, lab.a, lab.b), alpha)
     }
 
     /**
      * Darken the color by [amount] (0–1) in OKLab lightness.
-     * An [amount] of 1 always produces black.
+     *
+     * - `amount = 0` → color is unchanged.
+     * - `amount = 1` → shortcut to pure [BLACK] (exact `#000000`, alpha preserved).
+     * - Values in between shift OKLab `L` downward by [amount] and clamp to `[0, 1]`.
      */
     fun darken(amount: Float): FullColor {
-        val newL = (lab.L - amount.coerceIn(0f, 1f)).coerceIn(0f, 1f)
+        val clamped = amount.coerceIn(0f, 1f)
+        if (clamped >= 1f) return BLACK.withAlpha(alpha)
+        val newL = (lab.L - clamped).coerceIn(0f, 1f)
         return FullColor(OkLab(newL, lab.a, lab.b), alpha)
     }
 

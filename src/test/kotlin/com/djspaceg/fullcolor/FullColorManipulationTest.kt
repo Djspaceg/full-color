@@ -28,16 +28,21 @@ class FullColorManipulationTest {
     }
 
     @Test
-    fun `lighten by 1 produces maximum OKLab lightness`() {
+    fun `lighten by 1 produces pure white`() {
         val lightened = FullColor.fromRgb(50, 100, 150).lighten(1f)
-        assertNear(1f, lightened.toOkLab().L, 0.001f, "Lightened by 1 should have OKLab L = 1")
+        val (r, g, b) = lightened.toRgb()
+        assertEquals(255, r, "lighten(1) red should be 255")
+        assertEquals(255, g, "lighten(1) green should be 255")
+        assertEquals(255, b, "lighten(1) blue should be 255")
     }
 
     @Test
-    fun `darken by 1 produces near-black`() {
+    fun `darken by 1 produces pure black`() {
         val darkened = FullColor.fromRgb(200, 100, 50).darken(1f)
         val (r, g, b) = darkened.toRgb()
-        assertTrue(r <= 5 && g <= 5 && b <= 5, "Darkened by 1 should be near-black")
+        assertEquals(0, r, "darken(1) red should be 0")
+        assertEquals(0, g, "darken(1) green should be 0")
+        assertEquals(0, b, "darken(1) blue should be 0")
     }
 
     // ── saturate / desaturate ─────────────────────────────────────────────────

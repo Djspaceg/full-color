@@ -189,32 +189,15 @@ class FullColor private constructor(
         /**
          * Create from a Jetpack Compose-style packed color long.
          *
-         * Compose uses a 64-bit packed format where each channel occupies 16 bits
-         * (in the default sRGB color space). For simple 32-bit ARGB longs (upper 32
-         * bits zero), this delegates to [fromAndroidArgb].
+         * Jetpack Compose stores sRGB colors as a 32-bit ARGB value (`0xAARRGGBB`)
+         * in the lower 32 bits of the packed `Long`. This helper interprets the
+         * lower 32 bits as an Android-style ARGB integer and delegates to
+         * [fromAndroidArgb], ignoring any additional high bits used by Compose
+         * for extended color spaces.
          */
         fun fromComposeColor(packed: Long): FullColor {
-            // Compose Color encoding:  0xAARRGGBB in the lower 32 bits when colorSpace = 0
-            // For the full 64-bit format each component is 16-bit in the range [0, 65535].
-            val colorSpace = ((packed ushr 48) and 0x3F).toInt()
-            return if (colorSpace == 0) {
-                // sRGB 64-bit: components are 10-bit fields packed into 64 bits
-                // Bit layout: AAAA_AAAA_AAAA_CCCC_RRRR_RRRR_RRRR_GGGG_GGGG_GGGG_BBBB_BBBB_BBBB_CCCC_CCCC_CCCC
-                // Simpler approach: read each 10-bit field
-                val r = ((packed ushr 48) and 0x3FF).toInt()
-                val g = ((packed ushr 38) and 0x3FF).toInt()
-                val b = ((packed ushr 28) and 0x3FF).toInt()
-                val a = ((packed ushr 58) and 0x3FF).toInt()
-                fromRgbFloat(
-                    r = r / 1023f,
-                    g = g / 1023f,
-                    b = b / 1023f,
-                    a = a / 1023f,
-                )
-            } else {
-                // Fallback: treat lower 32 bits as ARGB
-                fromAndroidArgb(packed.toInt())
-            }
+            // Always interpret the lower 32 bits as 0xAARRGGBB.
+            return fromAndroidArgb(packed.toInt())
         }
 
         // ── Named/CSS color constants ──────────────────────────────────────────

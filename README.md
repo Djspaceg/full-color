@@ -85,15 +85,125 @@ val okForAA = ColorUtils.isWcagAaCompliant(FullColor.BLACK, FullColor.WHITE) // 
 val best    = ColorUtils.bestContrast(red) // picks black or white for text
 ```
 
-## Building
+## Building and Publishing
 
 ```bash
+# Build and run tests
 ./gradlew build
-./gradlew test
+
+# Publish to your local Maven cache only (~/.m2 — same machine only)
 ./gradlew publishToMavenLocal
+
+# Publish to GitHub Packages (accessible from any machine)
+GITHUB_ACTOR=<your-github-username> GITHUB_TOKEN=<your-pat> ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository
 ```
 
 Requires Java 17+.
+
+### Publishing to GitHub Packages
+
+GitHub Packages lets any project on any machine consume this library without needing to build it locally.
+
+**One-time setup — create a Personal Access Token (PAT):**
+
+1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens** (or classic tokens).
+2. Create a token with **`write:packages`** scope (and `read:packages` for consumers).
+3. Store it safely — you'll use it as `GITHUB_TOKEN` below.
+
+**Publish a new version:**
+
+```bash
+GITHUB_ACTOR=Djspaceg GITHUB_TOKEN=<your-pat> \
+  ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository
+```
+
+Or store credentials in `~/.gradle/gradle.properties` (never commit this file):
+
+```properties
+gpr.user=Djspaceg
+gpr.key=<your-pat>
+```
+
+Then just run:
+
+```bash
+./gradlew publishMavenJavaPublicationToGitHubPackagesRepository
+```
+
+### Consuming from GitHub Packages
+
+Any Gradle or Maven project — on any machine — can add this library by authenticating with a PAT that has **`read:packages`** scope.
+
+**Gradle (Kotlin DSL):**
+
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        maven {
+            url = uri("https://maven.pkg.github.com/Djspaceg/full-color")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull
+                    ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+        mavenCentral()
+    }
+}
+```
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.resourcefork:full-color:1.0.0")
+}
+```
+
+Store credentials in `~/.gradle/gradle.properties` (never commit this file):
+
+```properties
+gpr.user=<your-github-username>
+gpr.key=<your-pat-with-read-packages-scope>
+```
+
+**Maven:**
+
+Add to `~/.m2/settings.xml`:
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github-full-color</id>
+      <username>YOUR_GITHUB_USERNAME</username>
+      <password>YOUR_PAT_WITH_READ_PACKAGES</password>
+    </server>
+  </servers>
+</settings>
+```
+
+Add to your project `pom.xml`:
+
+```xml
+<repositories>
+  <repository>
+    <id>github-full-color</id>
+    <url>https://maven.pkg.github.com/Djspaceg/full-color</url>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>com.resourcefork</groupId>
+    <artifactId>full-color</artifactId>
+    <version>1.0.0</version>
+  </dependency>
+</dependencies>
+```
+
+> **Note:** GitHub Packages requires authentication even for packages in public repositories. The PAT only needs `read:packages` scope for consumers.
 
 ## License
 

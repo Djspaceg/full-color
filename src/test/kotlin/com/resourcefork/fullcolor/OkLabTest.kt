@@ -1,4 +1,4 @@
-package com.djspaceg.fullcolor
+package com.resourcefork.fullcolor
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

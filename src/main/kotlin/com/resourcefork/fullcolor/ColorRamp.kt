@@ -1,4 +1,4 @@
-package com.djspaceg.fullcolor
+package com.resourcefork.fullcolor
 
 /**
  * Generates a multi-step color ramp between two [FullColor] values.

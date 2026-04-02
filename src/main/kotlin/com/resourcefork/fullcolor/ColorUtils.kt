@@ -1,4 +1,4 @@
-package com.djspaceg.fullcolor
+package com.resourcefork.fullcolor
 
 /**
  * High-level color harmony and palette utilities.

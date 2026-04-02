@@ -4,7 +4,7 @@ plugins {
     `java-library`
 }
 
-group = "com.djspaceg"
+group = "com.resourcefork"
 version = "1.0.0"
 
 repositories {
@@ -34,7 +34,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            groupId = "com.djspaceg"
+            groupId = "com.resourcefork"
             artifactId = "full-color"
             version = "1.0.0"
 

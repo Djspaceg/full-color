@@ -20,7 +20,7 @@ A Kotlin-based color utility library with wide-gamut **OKLab** color space suppo
 - **Multi-stop gradients** — arbitrary stop positions with OKLab interpolation
 - **Color harmonies** — complementary, split-complementary, analogous, triadic, tetradic, monochromatic palettes
 - **CSS color parsing** — `ColorUtils.parseCss()`
-- **Maven-compatible** — published with `maven-publish`, group `com.djspaceg`, artifact `full-color`
+- **Maven-compatible** — published with `maven-publish`, group `com.resourcefork`, artifact `full-color`
 
 ## Usage
 
@@ -29,14 +29,14 @@ A Kotlin-based color utility library with wide-gamut **OKLab** color space suppo
 **Gradle (Kotlin DSL):**
 ```kotlin
 dependencies {
-    implementation("com.djspaceg:full-color:1.0.0")
+    implementation("com.resourcefork:full-color:1.0.0")
 }
 ```
 
 **Maven:**
 ```xml
 <dependency>
-    <groupId>com.djspaceg</groupId>
+    <groupId>com.resourcefork</groupId>
     <artifactId>full-color</artifactId>
     <version>1.0.0</version>
 </dependency>
@@ -45,7 +45,7 @@ dependencies {
 ### Quick examples
 
 ```kotlin
-import com.djspaceg.fullcolor.*
+import com.resourcefork.fullcolor.*
 
 // Create colors from various sources
 val red      = FullColor.fromHex("#FF0000")

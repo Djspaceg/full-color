@@ -56,8 +56,11 @@ object ColorRamp {
 class ColorGradient(stops: List<Pair<Float, FullColor>>) {
 
     private val sortedStops: List<Pair<Float, FullColor>> =
-        stops.sortedBy { it.first }.also {
-            require(it.size >= 2) { "A gradient requires at least 2 color stops." }
+        stops.sortedBy { it.first }.also { sorted ->
+            require(sorted.size >= 2) { "A gradient requires at least 2 color stops." }
+            require(sorted.all { it.first in 0f..1f }) {
+                "Color stop positions must be within [0, 1]. Got: ${sorted.map { it.first }}"
+            }
         }
 
     /**

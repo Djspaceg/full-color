@@ -22,21 +22,21 @@ fun FullColor.setHue(degrees: Float): FullColor {
 }
 
 /**
- * Return a new color with the OKLab lightness set to [L] (0–1, clamped).
+ * Return a new color with the OKLab lightness set to [lightness] (0–1, clamped).
  * The a/b chroma axes are preserved.
  */
-fun FullColor.setLightness(L: Float): FullColor {
+fun FullColor.setLightness(lightness: Float): FullColor {
     val lab = toOkLab()
-    return FullColor.fromOkLab(OkLab(L.coerceIn(0f, 1f), lab.a, lab.b), alpha)
+    return FullColor.fromOkLab(OkLab(lightness.coerceIn(0f, 1f), lab.a, lab.b), alpha)
 }
 
 /**
- * Return a new color with the OKLch chroma set to [C] (≥ 0, clamped).
+ * Return a new color with the OKLch chroma set to [chroma] (≥ 0, clamped).
  * Lightness and hue are preserved.
  */
-fun FullColor.setChroma(C: Float): FullColor {
+fun FullColor.setChroma(chroma: Float): FullColor {
     val lch = toOkLch()
-    return FullColor.fromOkLch(OkLch(lch.L, C.coerceAtLeast(0f), lch.H), alpha)
+    return FullColor.fromOkLch(OkLch(lch.L, chroma.coerceAtLeast(0f), lch.H), alpha)
 }
 
 // ── Relative adjusters ─────────────────────────────────────────────────────────

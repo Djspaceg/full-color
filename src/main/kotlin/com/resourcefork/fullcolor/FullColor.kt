@@ -391,18 +391,6 @@ class FullColor private constructor(
     }
 
     /**
-     * Scale the OKLch chroma by `(1 + amount)`.
-     *
-     * Positive values increase saturation; negative values decrease it.
-     * An [amount] of `-1` fully desaturates; values above `0` boost vividness.
-     */
-    fun adjustSaturation(amount: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newC = (lch.C * (1f + amount)).coerceAtLeast(0f)
-        return FullColor(OkLch(lch.L, newC, lch.H).toOkLab(), alpha)
-    }
-
-    /**
      * Shift the OKLch chroma by [amount] (positive = more vivid, negative = less vivid).
      * The result is clamped to ≥ 0.
      */
@@ -445,14 +433,6 @@ class FullColor private constructor(
     fun complement(): FullColor = rotateHue(180f)
 
     /**
-     * Return the complementary color (hue rotated 180°).
-     *
-     * Alias for [complement] following the naming convention used in
-     * `ComposeColorExtensions`.
-     */
-    fun complementary(): FullColor = complement()
-
-    /**
      * Return a split-complementary pair: two colors each [angle] degrees away from
      * the complementary hue. Defaults to a 30° split.
      */
@@ -482,15 +462,6 @@ class FullColor private constructor(
         val mixedAlpha = alpha + (other.alpha - alpha) * t
         return FullColor(lab.lerp(other.lab, t), mixedAlpha)
     }
-
-    /**
-     * Mix this color with [other] at the given [ratio] (0 = this, 1 = other)
-     * using linear interpolation in OKLab space.
-     *
-     * Alias for [mix] following the naming convention used in
-     * `ComposeColorExtensions`.
-     */
-    fun mixWith(other: FullColor, ratio: Float = 0.5f): FullColor = mix(other, ratio)
 
     /**
      * Return a new color with the alpha channel set to [newAlpha] (0–1).

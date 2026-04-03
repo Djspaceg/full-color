@@ -97,25 +97,7 @@ class FullColorManipulationTest {
         assertTrue(saturated.toOkLch().C >= base.toOkLch().C)
     }
 
-    // ── adjustSaturation / adjustChroma / setChroma ────────────────────────────
-
-    @Test
-    fun `adjustSaturation positive increases chroma`() {
-        val base = FullColor.fromHsl(60f, 0.5f, 0.5f)
-        assertTrue(base.adjustSaturation(0.5f).toOkLch().C > base.toOkLch().C, "chroma should increase")
-    }
-
-    @Test
-    fun `adjustSaturation minus 1 fully desaturates`() {
-        val result = FullColor.fromHsl(60f, 0.9f, 0.5f).adjustSaturation(-1f)
-        assertNear(0f, result.toOkLch().C, 0.01f, "C should be near zero")
-    }
-
-    @Test
-    fun `adjustSaturation zero leaves chroma unchanged`() {
-        val base = FullColor.fromHsl(200f, 0.7f, 0.4f)
-        assertNear(base.toOkLch().C, base.adjustSaturation(0f).toOkLch().C, 0.001f)
-    }
+    // ── adjustChroma / setChroma ──────────────────────────────────────────────
 
     @Test
     fun `adjustChroma positive increases chroma`() {
@@ -183,7 +165,7 @@ class FullColorManipulationTest {
         assertNear(180f, minAngularDiff, 2f, "Complement should be 180° rotated")
     }
 
-    // ── setHue / complementary / splitComplementary / triadic / analogous ─────
+    // ── setHue / splitComplementary / triadic / analogous ────────────────────
 
     @Test
     fun `setHue changes hue and preserves lightness and chroma`() {
@@ -201,12 +183,6 @@ class FullColorManipulationTest {
         val base = FullColor.fromHsl(90f, 0.7f, 0.5f)
         assertNear(40f, base.setHue(400f).toOkLch().H, 3f, "setHue(400) should produce ~40°")
         assertNear(340f, base.setHue(-20f).toOkLch().H, 3f, "setHue(-20) should produce ~340°")
-    }
-
-    @Test
-    fun `complementary matches complement`() {
-        val base = FullColor.fromHsl(120f, 0.7f, 0.4f)
-        assertEquals(base.complement().toRgb(), base.complementary().toRgb())
     }
 
     @Test
@@ -269,29 +245,6 @@ class FullColorManipulationTest {
         assertNear(midLab.L, midLabReverse.L, 0.001f)
         assertNear(midLab.a, midLabReverse.a, 0.001f)
         assertNear(midLab.b, midLabReverse.b, 0.001f)
-    }
-
-    // ── mixWith ───────────────────────────────────────────────────────────────
-
-    @Test
-    fun `mixWith at 0 returns this color`() {
-        val a = FullColor.fromRgb(255, 0, 0)
-        val b = FullColor.fromRgb(0, 0, 255)
-        assertEquals(a.toRgb(), a.mixWith(b, 0f).toRgb())
-    }
-
-    @Test
-    fun `mixWith at 1 returns other color`() {
-        val a = FullColor.fromRgb(255, 0, 0)
-        val b = FullColor.fromRgb(0, 0, 255)
-        assertEquals(b.toRgb(), a.mixWith(b, 1f).toRgb())
-    }
-
-    @Test
-    fun `mixWith matches mix`() {
-        val a = FullColor.fromRgb(200, 100, 50)
-        val b = FullColor.fromRgb(50, 200, 150)
-        assertEquals(a.mix(b, 0.3f).toRgb(), a.mixWith(b, 0.3f).toRgb())
     }
 
     // ── withAlpha ─────────────────────────────────────────────────────────────

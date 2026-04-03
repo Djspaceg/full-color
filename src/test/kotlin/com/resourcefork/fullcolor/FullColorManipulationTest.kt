@@ -11,6 +11,32 @@ class FullColorManipulationTest {
         assertTrue(abs(actual - expected) <= delta, "$message: expected $expected but got $actual (delta $delta)")
     }
 
+    // ── axis readers (.lightness / .chroma / .hue / .alpha) ──────────────────
+
+    @Test
+    fun `lightness property reads OKLab L`() {
+        val color = FullColor.fromRgb(100, 100, 100)
+        assertNear(color.toOkLab().L, color.lightness, 0.001f)
+    }
+
+    @Test
+    fun `chroma property reads OKLch C`() {
+        val color = FullColor.fromHsl(120f, 0.8f, 0.5f)
+        assertNear(color.toOkLch().C, color.chroma, 0.001f)
+    }
+
+    @Test
+    fun `hue property reads OKLch H`() {
+        val color = FullColor.fromHsl(200f, 0.7f, 0.5f)
+        assertNear(color.toOkLch().H, color.hue, 1f)
+    }
+
+    @Test
+    fun `alpha property reads constructor alpha`() {
+        val color = FullColor.fromRgba(255, 0, 0, 128)
+        assertNear(128f / 255f, color.alpha, 0.01f)
+    }
+
     // ── lighten / darken ──────────────────────────────────────────────────────
 
     @Test
@@ -45,7 +71,7 @@ class FullColorManipulationTest {
         assertEquals(0, b, "darken(1) blue should be 0")
     }
 
-    // ── adjustLightness / setLightness ────────────────────────────────────────
+    // ── adjustLightness / withLightness ───────────────────────────────────────
 
     @Test
     fun `adjustLightness positive shifts L up`() {
@@ -70,15 +96,15 @@ class FullColorManipulationTest {
     }
 
     @Test
-    fun `setLightness sets OKLab L to exact value`() {
-        val result = FullColor.fromRgb(200, 100, 50).setLightness(0.8f)
+    fun `withLightness sets OKLab L to exact value`() {
+        val result = FullColor.fromRgb(200, 100, 50).withLightness(0.8f)
         assertNear(0.8f, result.toOkLab().L, 0.01f, "OKLab L should be 0.8")
     }
 
     @Test
-    fun `setLightness clamps out-of-range values`() {
-        assertNear(0f, FullColor.fromRgb(100, 100, 100).setLightness(-0.5f).toOkLab().L, 0.001f)
-        assertNear(1f, FullColor.fromRgb(100, 100, 100).setLightness(1.5f).toOkLab().L, 0.001f)
+    fun `withLightness clamps out-of-range values`() {
+        assertNear(0f, FullColor.fromRgb(100, 100, 100).withLightness(-0.5f).toOkLab().L, 0.001f)
+        assertNear(1f, FullColor.fromRgb(100, 100, 100).withLightness(1.5f).toOkLab().L, 0.001f)
     }
 
     // ── saturate / desaturate ─────────────────────────────────────────────────
@@ -97,7 +123,7 @@ class FullColorManipulationTest {
         assertTrue(saturated.toOkLch().C >= base.toOkLch().C)
     }
 
-    // ── adjustChroma / setChroma ──────────────────────────────────────────────
+    // ── adjustChroma / withChroma ─────────────────────────────────────────────
 
     @Test
     fun `adjustChroma positive increases chroma`() {
@@ -118,35 +144,35 @@ class FullColorManipulationTest {
     }
 
     @Test
-    fun `setChroma sets OKLch C to exact value`() {
-        val result = FullColor.fromHsl(120f, 0.9f, 0.5f).setChroma(0.05f)
+    fun `withChroma sets OKLch C to exact value`() {
+        val result = FullColor.fromHsl(120f, 0.9f, 0.5f).withChroma(0.05f)
         assertNear(0.05f, result.toOkLch().C, 0.005f)
     }
 
     @Test
-    fun `setChroma zero produces achromatic color`() {
-        assertNear(0f, FullColor.fromHsl(90f, 0.8f, 0.5f).setChroma(0f).toOkLch().C, 0.01f)
+    fun `withChroma zero produces achromatic color`() {
+        assertNear(0f, FullColor.fromHsl(90f, 0.8f, 0.5f).withChroma(0f).toOkLch().C, 0.01f)
     }
 
     @Test
-    fun `setChroma clamps negative to 0`() {
-        assertNear(0f, FullColor.fromHsl(60f, 0.8f, 0.5f).setChroma(-1f).toOkLch().C, 0.001f)
+    fun `withChroma clamps negative to 0`() {
+        assertNear(0f, FullColor.fromHsl(60f, 0.8f, 0.5f).withChroma(-1f).toOkLch().C, 0.001f)
     }
 
-    // ── hue rotation ─────────────────────────────────────────────────────────
+    // ── adjustHue / complement ────────────────────────────────────────────────
 
     @Test
-    fun `rotateHue by 0 degrees returns same chroma and lightness`() {
+    fun `adjustHue by 0 degrees returns same chroma and lightness`() {
         val base = FullColor.fromHsl(90f, 0.8f, 0.5f)
-        val rotated = base.rotateHue(0f)
+        val rotated = base.adjustHue(0f)
         assertNear(base.toOkLch().L, rotated.toOkLch().L)
         assertNear(base.toOkLch().C, rotated.toOkLch().C, 0.01f)
     }
 
     @Test
-    fun `rotateHue by 360 degrees returns equivalent color`() {
+    fun `adjustHue by 360 degrees returns equivalent color`() {
         val base = FullColor.fromHsl(45f, 0.9f, 0.4f)
-        val rotated = base.rotateHue(360f)
+        val rotated = base.adjustHue(360f)
         val (r1, g1, b1) = base.toRgb()
         val (r2, g2, b2) = rotated.toRgb()
         assertTrue(abs(r1 - r2) <= 2)
@@ -165,12 +191,12 @@ class FullColorManipulationTest {
         assertNear(180f, minAngularDiff, 2f, "Complement should be 180° rotated")
     }
 
-    // ── setHue / splitComplementary / triadic / analogous ────────────────────
+    // ── withHue / splitComplementary / triadic / analogous ───────────────────
 
     @Test
-    fun `setHue changes hue and preserves lightness and chroma`() {
+    fun `withHue changes hue and preserves lightness and chroma`() {
         val base = FullColor.fromHsl(60f, 0.8f, 0.5f)
-        val result = base.setHue(200f)
+        val result = base.withHue(200f)
         val baseLch = base.toOkLch()
         val resultLch = result.toOkLch()
         assertNear(200f, resultLch.H, 3f, "hue should be near 200°")
@@ -179,10 +205,10 @@ class FullColorManipulationTest {
     }
 
     @Test
-    fun `setHue normalises out-of-range degrees`() {
+    fun `withHue normalizes out-of-range degrees`() {
         val base = FullColor.fromHsl(90f, 0.7f, 0.5f)
-        assertNear(40f, base.setHue(400f).toOkLch().H, 3f, "setHue(400) should produce ~40°")
-        assertNear(340f, base.setHue(-20f).toOkLch().H, 3f, "setHue(-20) should produce ~340°")
+        assertNear(40f, base.withHue(400f).toOkLch().H, 3f, "withHue(400) should produce ~40°")
+        assertNear(340f, base.withHue(-20f).toOkLch().H, 3f, "withHue(-20) should produce ~340°")
     }
 
     @Test

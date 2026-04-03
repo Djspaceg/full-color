@@ -325,6 +325,28 @@ class FullColor private constructor(
 
     // ── Manipulation ───────────────────────────────────────────────────────────
 
+    // ── Axis readers ──────────────────────────────────────────────────────────
+
+    /** The OKLab lightness of this color in [0, 1]. */
+    val lightness: Float get() = lab.L
+
+    /** The OKLch chroma of this color (≥ 0). */
+    val chroma: Float get() = lab.toOkLch().C
+
+    /** The OKLch hue of this color in [0, 360). */
+    val hue: Float get() = lab.toOkLch().H
+
+    // ── Internal axis-mutation helpers ────────────────────────────────────────
+
+    /** Return a new color by transforming the internal [OkLab] value; alpha is preserved. */
+    private fun modifyLab(transform: (OkLab) -> OkLab): FullColor = FullColor(transform(lab), alpha)
+
+    /** Return a new color by transforming the [OkLch] representation; alpha is preserved. */
+    private fun modifyLch(transform: (OkLch) -> OkLch): FullColor =
+        FullColor(transform(lab.toOkLch()).toOkLab(), alpha)
+
+    // ── Lightness ─────────────────────────────────────────────────────────────
+
     /**
      * Lighten the color by [amount] (0–1) in OKLab lightness.
      *
@@ -362,96 +384,89 @@ class FullColor private constructor(
      * increase/decrease operations.
      */
     fun adjustLightness(amount: Float): FullColor =
-        FullColor(OkLab((lab.L + amount).coerceIn(0f, 1f), lab.a, lab.b), alpha)
+        modifyLab { OkLab((it.L + amount).coerceIn(0f, 1f), it.a, it.b) }
 
     /**
      * Return a new color with the OKLab lightness set to [lightness] (0–1, clamped).
      * The a/b chroma axes are preserved.
      */
-    fun setLightness(lightness: Float): FullColor =
-        FullColor(OkLab(lightness.coerceIn(0f, 1f), lab.a, lab.b), alpha)
+    fun withLightness(lightness: Float): FullColor =
+        modifyLab { OkLab(lightness.coerceIn(0f, 1f), it.a, it.b) }
+
+    // ── Chroma ────────────────────────────────────────────────────────────────
 
     /**
      * Saturate the color by [amount] (0–1) — scales the OKLch chroma upward.
      */
-    fun saturate(amount: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newC = (lch.C * (1f + amount.coerceIn(0f, 1f))).coerceAtLeast(0f)
-        return FullColor(OkLch(lch.L, newC, lch.H).toOkLab(), alpha)
-    }
+    fun saturate(amount: Float): FullColor =
+        modifyLch { OkLch(it.L, (it.C * (1f + amount.coerceIn(0f, 1f))).coerceAtLeast(0f), it.H) }
 
     /**
      * Desaturate the color by [amount] (0–1) — scales the OKLch chroma downward.
      * An [amount] of 1 produces a grey of the same lightness.
      */
-    fun desaturate(amount: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newC = (lch.C * (1f - amount.coerceIn(0f, 1f))).coerceAtLeast(0f)
-        return FullColor(OkLch(lch.L, newC, lch.H).toOkLab(), alpha)
-    }
+    fun desaturate(amount: Float): FullColor =
+        modifyLch { OkLch(it.L, (it.C * (1f - amount.coerceIn(0f, 1f))).coerceAtLeast(0f), it.H) }
 
     /**
      * Shift the OKLch chroma by [amount] (positive = more vivid, negative = less vivid).
      * The result is clamped to ≥ 0.
      */
-    fun adjustChroma(amount: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newC = (lch.C + amount).coerceAtLeast(0f)
-        return FullColor(OkLch(lch.L, newC, lch.H).toOkLab(), alpha)
-    }
+    fun adjustChroma(amount: Float): FullColor =
+        modifyLch { OkLch(it.L, (it.C + amount).coerceAtLeast(0f), it.H) }
 
     /**
      * Return a new color with the OKLch chroma set to [chroma] (≥ 0, clamped).
      * Lightness and hue are preserved.
      */
-    fun setChroma(chroma: Float): FullColor {
-        val lch = lab.toOkLch()
-        return FullColor(OkLch(lch.L, chroma.coerceAtLeast(0f), lch.H).toOkLab(), alpha)
-    }
+    fun withChroma(chroma: Float): FullColor =
+        modifyLch { OkLch(it.L, chroma.coerceAtLeast(0f), it.H) }
+
+    // ── Hue ───────────────────────────────────────────────────────────────────
 
     /**
-     * Rotate the hue by [degrees] in OKLch space.
+     * Shift the OKLch hue by [degrees] (positive or negative).
+     * The result wraps around [0, 360).
      */
-    fun rotateHue(degrees: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newH = (lch.H + degrees + 360f) % 360f
-        return FullColor(OkLch(lch.L, lch.C, newH).toOkLab(), alpha)
-    }
+    fun adjustHue(degrees: Float): FullColor =
+        modifyLch { OkLch(it.L, it.C, (it.H + degrees + 360f) % 360f) }
 
     /**
-     * Return a new color with the OKLch hue set to [degrees] (0–360°).
+     * Return a new color with the OKLch hue set to [degrees] (0–360°, normalized).
      * Lightness and chroma are preserved.
      */
-    fun setHue(degrees: Float): FullColor {
-        val lch = lab.toOkLch()
-        return FullColor(OkLch(lch.L, lch.C, ((degrees % 360f) + 360f) % 360f).toOkLab(), alpha)
-    }
+    fun withHue(degrees: Float): FullColor =
+        modifyLch { OkLch(it.L, it.C, ((degrees % 360f) + 360f) % 360f) }
+
+    // ── Harmony ───────────────────────────────────────────────────────────────
 
     /**
      * Return the complementary color (hue rotated 180°).
      */
-    fun complement(): FullColor = rotateHue(180f)
+    fun complement(): FullColor = adjustHue(180f)
 
     /**
      * Return a split-complementary pair: two colors each [angle] degrees away from
      * the complementary hue. Defaults to a 30° split.
      */
     fun splitComplementary(angle: Float = 30f): Pair<FullColor, FullColor> =
-        rotateHue(180f - angle) to rotateHue(180f + angle)
+        adjustHue(180f - angle) to adjustHue(180f + angle)
 
     /**
      * Return a triadic color scheme: three colors evenly spaced at 120° intervals.
      * This color is the first element of the triple.
      */
     fun triadic(): Triple<FullColor, FullColor, FullColor> =
-        Triple(this, rotateHue(120f), rotateHue(240f))
+        Triple(this, adjustHue(120f), adjustHue(240f))
 
     /**
      * Return an analogous color scheme: three colors separated by [angle] degrees
      * (default 30°). This color is the center element of the triple.
      */
     fun analogous(angle: Float = 30f): Triple<FullColor, FullColor, FullColor> =
-        Triple(rotateHue(-angle), this, rotateHue(angle))
+        Triple(adjustHue(-angle), this, adjustHue(angle))
+
+    // ── Blending ──────────────────────────────────────────────────────────────
 
     /**
      * Mix this color with [other] at the given [ratio] (0 = this, 1 = other)
@@ -467,6 +482,8 @@ class FullColor private constructor(
      * Return a new color with the alpha channel set to [newAlpha] (0–1).
      */
     fun withAlpha(newAlpha: Float): FullColor = FullColor(lab, newAlpha.coerceIn(0f, 1f))
+
+    // ── Accessibility ─────────────────────────────────────────────────────────
 
     /**
      * Compute the relative luminance (WCAG) of this color in the range [0, 1].

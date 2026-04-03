@@ -37,7 +37,7 @@ object ColorUtils {
      * Return a tetradic (square) color scheme: four colors spaced at 90° intervals.
      */
     fun tetradic(color: FullColor): List<FullColor> =
-        listOf(color, color.rotateHue(90f), color.rotateHue(180f), color.rotateHue(270f))
+        listOf(color, color.adjustHue(90f), color.adjustHue(180f), color.adjustHue(270f))
 
     /**
      * Determine whether [foreground] has sufficient WCAG AA contrast against [background].

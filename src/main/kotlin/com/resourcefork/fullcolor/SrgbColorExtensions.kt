@@ -110,7 +110,14 @@ fun FullColor.ensureContrast(background: FullColor, minRatio: Float = 4.5f): Ful
     var candidate = this
     val step = 0.05f
     repeat(20) {
-        candidate = if (goLighter) candidate.lighten(step) else candidate.darken(step)
+        val adjusted = if (goLighter) candidate.lighten(step) else candidate.darken(step)
+        candidate = if (adjusted == candidate) {
+            val boundary = if (goLighter) candidate.lighten(1f) else candidate.darken(1f)
+            if (boundary == candidate) return candidate
+            boundary
+        } else {
+            adjusted
+        }
         if (candidate.contrastRatio(background) >= minRatio) return candidate
     }
     return candidate

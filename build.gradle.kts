@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.resourcefork"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
@@ -36,7 +36,7 @@ publishing {
             from(components["java"])
             groupId = "com.resourcefork"
             artifactId = "full-color"
-            version = "1.0.0"
+            version = "1.1.0"
 
             pom {
                 name.set("full-color")

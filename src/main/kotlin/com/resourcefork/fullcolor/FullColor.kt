@@ -325,6 +325,28 @@ class FullColor private constructor(
 
     // ── Manipulation ───────────────────────────────────────────────────────────
 
+    // ── Axis readers ──────────────────────────────────────────────────────────
+
+    /** The OKLab lightness of this color in [0, 1]. */
+    val lightness: Float get() = lab.L
+
+    /** The OKLch chroma of this color (≥ 0). */
+    val chroma: Float get() = lab.toOkLch().C
+
+    /** The OKLch hue of this color in [0, 360). */
+    val hue: Float get() = lab.toOkLch().H
+
+    // ── Internal axis-mutation helpers ────────────────────────────────────────
+
+    /** Return a new color by transforming the internal [OkLab] value; alpha is preserved. */
+    private fun modifyLab(transform: (OkLab) -> OkLab): FullColor = FullColor(transform(lab), alpha)
+
+    /** Return a new color by transforming the [OkLch] representation; alpha is preserved. */
+    private fun modifyLch(transform: (OkLch) -> OkLch): FullColor =
+        FullColor(transform(lab.toOkLch()).toOkLab(), alpha)
+
+    // ── Lightness ─────────────────────────────────────────────────────────────
+
     /**
      * Lighten the color by [amount] (0–1) in OKLab lightness.
      *
@@ -354,37 +376,97 @@ class FullColor private constructor(
     }
 
     /**
+     * Shift the OKLab lightness by [amount] (positive = lighter, negative = darker).
+     * The result is clamped to [0, 1].
+     *
+     * Unlike [lighten] / [darken] (which accept only positive magnitudes), this
+     * function accepts a signed offset, making it convenient for symmetrical
+     * increase/decrease operations.
+     */
+    fun adjustLightness(amount: Float): FullColor =
+        modifyLab { OkLab((it.L + amount).coerceIn(0f, 1f), it.a, it.b) }
+
+    /**
+     * Return a new color with the OKLab lightness set to [lightness] (0–1, clamped).
+     * The a/b chroma axes are preserved.
+     */
+    fun withLightness(lightness: Float): FullColor =
+        modifyLab { OkLab(lightness.coerceIn(0f, 1f), it.a, it.b) }
+
+    // ── Chroma ────────────────────────────────────────────────────────────────
+
+    /**
      * Saturate the color by [amount] (0–1) — scales the OKLch chroma upward.
      */
-    fun saturate(amount: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newC = (lch.C * (1f + amount.coerceIn(0f, 1f))).coerceAtLeast(0f)
-        return FullColor(OkLch(lch.L, newC, lch.H).toOkLab(), alpha)
-    }
+    fun saturate(amount: Float): FullColor =
+        modifyLch { OkLch(it.L, (it.C * (1f + amount.coerceIn(0f, 1f))).coerceAtLeast(0f), it.H) }
 
     /**
      * Desaturate the color by [amount] (0–1) — scales the OKLch chroma downward.
      * An [amount] of 1 produces a grey of the same lightness.
      */
-    fun desaturate(amount: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newC = (lch.C * (1f - amount.coerceIn(0f, 1f))).coerceAtLeast(0f)
-        return FullColor(OkLch(lch.L, newC, lch.H).toOkLab(), alpha)
-    }
+    fun desaturate(amount: Float): FullColor =
+        modifyLch { OkLch(it.L, (it.C * (1f - amount.coerceIn(0f, 1f))).coerceAtLeast(0f), it.H) }
 
     /**
-     * Rotate the hue by [degrees] in OKLch space.
+     * Shift the OKLch chroma by [amount] (positive = more vivid, negative = less vivid).
+     * The result is clamped to ≥ 0.
      */
-    fun rotateHue(degrees: Float): FullColor {
-        val lch = lab.toOkLch()
-        val newH = (lch.H + degrees + 360f) % 360f
-        return FullColor(OkLch(lch.L, lch.C, newH).toOkLab(), alpha)
-    }
+    fun adjustChroma(amount: Float): FullColor =
+        modifyLch { OkLch(it.L, (it.C + amount).coerceAtLeast(0f), it.H) }
+
+    /**
+     * Return a new color with the OKLch chroma set to [chroma] (≥ 0, clamped).
+     * Lightness and hue are preserved.
+     */
+    fun withChroma(chroma: Float): FullColor =
+        modifyLch { OkLch(it.L, chroma.coerceAtLeast(0f), it.H) }
+
+    // ── Hue ───────────────────────────────────────────────────────────────────
+
+    /**
+     * Shift the OKLch hue by [degrees] (positive or negative).
+     * The result wraps around [0, 360).
+     */
+    fun adjustHue(degrees: Float): FullColor =
+        modifyLch { OkLch(it.L, it.C, (it.H + degrees + 360f) % 360f) }
+
+    /**
+     * Return a new color with the OKLch hue set to [degrees] (0–360°, normalized).
+     * Lightness and chroma are preserved.
+     */
+    fun withHue(degrees: Float): FullColor =
+        modifyLch { OkLch(it.L, it.C, ((degrees % 360f) + 360f) % 360f) }
+
+    // ── Harmony ───────────────────────────────────────────────────────────────
 
     /**
      * Return the complementary color (hue rotated 180°).
      */
-    fun complement(): FullColor = rotateHue(180f)
+    fun complement(): FullColor = adjustHue(180f)
+
+    /**
+     * Return a split-complementary pair: two colors each [angle] degrees away from
+     * the complementary hue. Defaults to a 30° split.
+     */
+    fun splitComplementary(angle: Float = 30f): Pair<FullColor, FullColor> =
+        adjustHue(180f - angle) to adjustHue(180f + angle)
+
+    /**
+     * Return a triadic color scheme: three colors evenly spaced at 120° intervals.
+     * This color is the first element of the triple.
+     */
+    fun triadic(): Triple<FullColor, FullColor, FullColor> =
+        Triple(this, adjustHue(120f), adjustHue(240f))
+
+    /**
+     * Return an analogous color scheme: three colors separated by [angle] degrees
+     * (default 30°). This color is the center element of the triple.
+     */
+    fun analogous(angle: Float = 30f): Triple<FullColor, FullColor, FullColor> =
+        Triple(adjustHue(-angle), this, adjustHue(angle))
+
+    // ── Blending ──────────────────────────────────────────────────────────────
 
     /**
      * Mix this color with [other] at the given [ratio] (0 = this, 1 = other)
@@ -400,6 +482,8 @@ class FullColor private constructor(
      * Return a new color with the alpha channel set to [newAlpha] (0–1).
      */
     fun withAlpha(newAlpha: Float): FullColor = FullColor(lab, newAlpha.coerceIn(0f, 1f))
+
+    // ── Accessibility ─────────────────────────────────────────────────────────
 
     /**
      * Compute the relative luminance (WCAG) of this color in the range [0, 1].
@@ -420,6 +504,52 @@ class FullColor private constructor(
         val lighter = maxOf(l1, l2)
         val darker = minOf(l1, l2)
         return (lighter + 0.05f) / (darker + 0.05f)
+    }
+
+    /**
+     * Return whichever of [light] (default: [WHITE]) or [dark] (default: [BLACK])
+     * has higher WCAG contrast against this color.
+     *
+     * Useful for choosing a foreground text color that will be legible on this
+     * background.
+     */
+    fun onColor(light: FullColor = WHITE, dark: FullColor = BLACK): FullColor {
+        val lightRatio = contrastRatio(light)
+        val darkRatio = contrastRatio(dark)
+        return if (lightRatio >= darkRatio) light else dark
+    }
+
+    /**
+     * Return this color, or a lightness-adjusted version, that achieves at least
+     * [minRatio] WCAG contrast against [background] (default WCAG AA: 4.5:1).
+     *
+     * The function shifts lightness toward the direction that can achieve the
+     * higher maximum contrast. If the target cannot be reached the best
+     * achievable result is returned.
+     */
+    fun ensureContrast(background: FullColor, minRatio: Float = 4.5f): FullColor {
+        if (contrastRatio(background) >= minRatio) return this
+        val bgLum = background.relativeLuminance()
+        // Choose the direction that can achieve the highest possible contrast.
+        // Going lighter tops out at 1.05/(bgLum+0.05); going darker at (bgLum+0.05)/0.05.
+        val maxIfLighter = 1.05f / (bgLum + 0.05f)
+        val maxIfDarker = (bgLum + 0.05f) / 0.05f
+        val goLighter = maxIfLighter >= maxIfDarker
+        var candidate = this
+        val step = 0.05f
+        repeat(20) {
+            val adjusted = if (goLighter) candidate.lighten(step) else candidate.darken(step)
+            candidate = if (adjusted == candidate) {
+                // L is clamped at the boundary; jump directly to pure white/black.
+                val boundary = if (goLighter) candidate.lighten(1f) else candidate.darken(1f)
+                if (boundary == candidate) return candidate
+                boundary
+            } else {
+                adjusted
+            }
+            if (candidate.contrastRatio(background) >= minRatio) return candidate
+        }
+        return candidate
     }
 
     // ── Object overrides ───────────────────────────────────────────────────────

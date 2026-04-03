@@ -18,26 +18,26 @@ object ColorUtils {
      * the complementary hue. Defaults to a 30° split.
      */
     fun splitComplement(color: FullColor, angle: Float = 30f): Pair<FullColor, FullColor> =
-        color.rotateHue(180f - angle) to color.rotateHue(180f + angle)
+        color.splitComplementary(angle)
 
     /**
      * Return an analogous color scheme: three colors separated by [angle] degrees.
      * The center of the trio is [color] itself.
      */
     fun analogous(color: FullColor, angle: Float = 30f): Triple<FullColor, FullColor, FullColor> =
-        Triple(color.rotateHue(-angle), color, color.rotateHue(angle))
+        color.analogous(angle)
 
     /**
      * Return a triadic color scheme: three colors evenly spaced at 120° intervals.
      */
     fun triadic(color: FullColor): Triple<FullColor, FullColor, FullColor> =
-        Triple(color, color.rotateHue(120f), color.rotateHue(240f))
+        color.triadic()
 
     /**
      * Return a tetradic (square) color scheme: four colors spaced at 90° intervals.
      */
     fun tetradic(color: FullColor): List<FullColor> =
-        listOf(color, color.rotateHue(90f), color.rotateHue(180f), color.rotateHue(270f))
+        listOf(color, color.adjustHue(90f), color.adjustHue(180f), color.adjustHue(270f))
 
     /**
      * Determine whether [foreground] has sufficient WCAG AA contrast against [background].
@@ -61,11 +61,7 @@ object ColorUtils {
         background: FullColor,
         light: FullColor = FullColor.WHITE,
         dark: FullColor = FullColor.BLACK,
-    ): FullColor {
-        val lightRatio = background.contrastRatio(light)
-        val darkRatio = background.contrastRatio(dark)
-        return if (lightRatio >= darkRatio) light else dark
-    }
+    ): FullColor = background.onColor(light, dark)
 
     /**
      * Generate a monochromatic palette of [steps] lightness steps for [color],

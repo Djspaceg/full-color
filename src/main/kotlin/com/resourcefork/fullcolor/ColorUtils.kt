@@ -44,24 +44,48 @@ object ColorUtils {
      * Normal text requires a contrast ratio of at least 4.5:1.
      */
     fun isWcagAaCompliant(foreground: FullColor, background: FullColor): Boolean =
-        foreground.contrastRatio(background) >= 4.5f
+        foreground.isAa(background)
+
+    /**
+     * Determine whether [foreground] has sufficient WCAG AA contrast against [background]
+     * for large text (≥ 18pt or 14pt bold). Large text requires a contrast ratio of at least 3:1.
+     */
+    fun isWcagAaLargeCompliant(foreground: FullColor, background: FullColor): Boolean =
+        foreground.isAaLargeText(background)
 
     /**
      * Determine whether [foreground] has sufficient WCAG AAA contrast against [background].
      * Normal text requires a contrast ratio of at least 7:1.
      */
     fun isWcagAaaCompliant(foreground: FullColor, background: FullColor): Boolean =
-        foreground.contrastRatio(background) >= 7f
+        foreground.isAaa(background)
 
     /**
      * Choose the better-contrasting color (either [light] or [dark]) to place on top
      * of [background]. Defaults to white for [light] and black for [dark].
+     *
+     * This always returns one of the two supplied colors. Use [ensureAa] or [ensureAaa]
+     * when you want to generate a nearby accessible variant of an arbitrary color.
      */
     fun bestContrast(
         background: FullColor,
         light: FullColor = FullColor.WHITE,
         dark: FullColor = FullColor.BLACK,
-    ): FullColor = background.onColor(light, dark)
+    ): FullColor = background.fullContrast(light, dark)
+
+    /**
+     * Return a lightness-adjusted version of [foreground] that meets the WCAG AA
+     * normal-text contrast requirement (≥ 4.5:1) against [background].
+     */
+    fun ensureAa(foreground: FullColor, background: FullColor): FullColor =
+        foreground.aa(background)
+
+    /**
+     * Return a lightness-adjusted version of [foreground] that meets the WCAG AAA
+     * normal-text contrast requirement (≥ 7:1) against [background].
+     */
+    fun ensureAaa(foreground: FullColor, background: FullColor): FullColor =
+        foreground.aaa(background)
 
     /**
      * Generate a monochromatic palette of [steps] lightness steps for [color],

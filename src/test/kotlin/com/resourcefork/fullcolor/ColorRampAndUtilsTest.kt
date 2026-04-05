@@ -140,10 +140,44 @@ class ColorRampAndUtilsTest {
     }
 
     @Test
+    fun `black on white is WCAG AAA compliant`() {
+        assertTrue(ColorUtils.isWcagAaaCompliant(FullColor.BLACK, FullColor.WHITE))
+    }
+
+    @Test
+    fun `mid grey on white fails WCAG AAA`() {
+        assertFalse(ColorUtils.isWcagAaaCompliant(FullColor.fromRgb(120, 120, 120), FullColor.WHITE))
+    }
+
+    @Test
+    fun `dark grey on white passes WCAG AA large text`() {
+        assertTrue(ColorUtils.isWcagAaLargeCompliant(FullColor.fromRgb(90, 90, 90), FullColor.WHITE))
+    }
+
+    @Test
+    fun `light grey on white fails WCAG AA large text`() {
+        assertFalse(ColorUtils.isWcagAaLargeCompliant(FullColor.fromRgb(200, 200, 200), FullColor.WHITE))
+    }
+
+    @Test
     fun `bestContrast picks black text on white background`() {
         val best = ColorUtils.bestContrast(FullColor.WHITE)
         val (r, g, b) = best.toRgb()
         assertEquals(0, r); assertEquals(0, g); assertEquals(0, b)
+    }
+
+    @Test
+    fun `ensureAa meets AA contrast requirement`() {
+        val fg = FullColor.fromRgb(128, 128, 128)
+        val bg = FullColor.WHITE
+        assertTrue(ColorUtils.ensureAa(fg, bg).contrastRatio(bg) >= 4.5f)
+    }
+
+    @Test
+    fun `ensureAaa meets AAA contrast requirement`() {
+        val fg = FullColor.fromRgb(128, 128, 128)
+        val bg = FullColor.WHITE
+        assertTrue(ColorUtils.ensureAaa(fg, bg).contrastRatio(bg) >= 7.0f)
     }
 
     @Test

@@ -283,7 +283,7 @@ class FullColorManipulationTest {
         assertEquals(color.toRgb(), transparent.toRgb())
     }
 
-    // ── contrast / onColor / ensureContrast ──────────────────────────────────
+    // ── contrast / fullContrast / ensureContrast / aa / aaa ──────────────────
 
     @Test
     fun `black on white has maximum contrast`() {
@@ -298,26 +298,26 @@ class FullColorManipulationTest {
     }
 
     @Test
-    fun `onColor returns black for white background`() {
-        val (r, g, b) = FullColor.WHITE.onColor().toRgb()
-        assertEquals(0, r, "onColor(white) should be black")
+    fun `fullContrast returns black for white background`() {
+        val (r, g, b) = FullColor.WHITE.fullContrast().toRgb()
+        assertEquals(0, r, "fullContrast(white) should be black")
         assertEquals(0, g)
         assertEquals(0, b)
     }
 
     @Test
-    fun `onColor returns white for black background`() {
-        val (r, g, b) = FullColor.BLACK.onColor().toRgb()
-        assertEquals(255, r, "onColor(black) should be white")
+    fun `fullContrast returns white for black background`() {
+        val (r, g, b) = FullColor.BLACK.fullContrast().toRgb()
+        assertEquals(255, r, "fullContrast(black) should be white")
         assertEquals(255, g)
         assertEquals(255, b)
     }
 
     @Test
-    fun `onColor uses custom light and dark`() {
+    fun `fullContrast uses custom light and dark`() {
         val customLight = FullColor.fromRgb(200, 200, 200)
         val customDark = FullColor.fromRgb(50, 50, 50)
-        assertEquals(customLight.toRgb(), FullColor.BLACK.onColor(light = customLight, dark = customDark).toRgb())
+        assertEquals(customLight.toRgb(), FullColor.BLACK.fullContrast(light = customLight, dark = customDark).toRgb())
     }
 
     @Test
@@ -337,5 +337,75 @@ class FullColorManipulationTest {
         val fg = FullColor.fromRgb(150, 100, 50)
         val bg = FullColor.fromRgb(130, 90, 40)
         assertTrue(fg.ensureContrast(bg, 3f).contrastRatio(bg) >= 3f)
+    }
+
+    @Test
+    fun `isAa returns true when contrast meets AA threshold`() {
+        assertTrue(FullColor.BLACK.isAa(FullColor.WHITE))
+    }
+
+    @Test
+    fun `isAa returns false when contrast is insufficient`() {
+        assertFalse(FullColor.WHITE.isAa(FullColor.WHITE))
+    }
+
+    @Test
+    fun `isAaa returns true when contrast meets AAA threshold`() {
+        assertTrue(FullColor.BLACK.isAaa(FullColor.WHITE))
+    }
+
+    @Test
+    fun `isAaa returns false for mid-grey on white`() {
+        val midGrey = FullColor.fromRgb(100, 100, 100)
+        assertFalse(midGrey.isAaa(FullColor.WHITE))
+    }
+
+    @Test
+    fun `isAaLargeText returns true for colors that pass 3 to 1`() {
+        val darkGrey = FullColor.fromRgb(90, 90, 90)
+        assertTrue(darkGrey.isAaLargeText(FullColor.WHITE))
+    }
+
+    @Test
+    fun `aa adjusts color to meet WCAG AA against background`() {
+        val fg = FullColor.fromRgb(128, 128, 128)
+        val bg = FullColor.WHITE
+        val result = fg.aa(bg)
+        assertTrue(result.contrastRatio(bg) >= 4.5f, "aa() result must meet 4.5:1 contrast")
+    }
+
+    @Test
+    fun `aa preserves hue when adjusting for AA compliance`() {
+        val fg = FullColor.fromHsl(200f, 0.7f, 0.5f)
+        val bg = FullColor.WHITE
+        val result = fg.aa(bg)
+        assertTrue(result.contrastRatio(bg) >= 4.5f)
+        assertNear(fg.hue, result.hue, 5f, "aa() should preserve hue")
+    }
+
+    @Test
+    fun `aa leaves already compliant color unchanged`() {
+        assertTrue(FullColor.BLACK.aa(FullColor.WHITE).contrastRatio(FullColor.WHITE) >= 4.5f)
+    }
+
+    @Test
+    fun `aaa adjusts color to meet WCAG AAA against background`() {
+        val fg = FullColor.fromRgb(128, 128, 128)
+        val bg = FullColor.WHITE
+        val result = fg.aaa(bg)
+        assertTrue(result.contrastRatio(bg) >= 7.0f, "aaa() result must meet 7:1 contrast")
+    }
+
+    @Test
+    fun `aaa leaves already compliant color unchanged`() {
+        assertTrue(FullColor.BLACK.aaa(FullColor.WHITE).contrastRatio(FullColor.WHITE) >= 7.0f)
+    }
+
+    @Test
+    fun `aaLargeText adjusts color to meet 3 to 1 contrast`() {
+        val fg = FullColor.fromRgb(180, 180, 180)
+        val bg = FullColor.WHITE
+        val result = fg.aaLargeText(bg)
+        assertTrue(result.contrastRatio(bg) >= 3.0f, "aaLargeText() result must meet 3:1 contrast")
     }
 }

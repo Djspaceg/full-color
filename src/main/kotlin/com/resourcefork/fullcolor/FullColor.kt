@@ -508,12 +508,13 @@ class FullColor private constructor(
 
     /**
      * Return whichever of [light] (default: [WHITE]) or [dark] (default: [BLACK])
-     * has higher WCAG contrast against this color.
+     * has the highest possible WCAG contrast against this color.
      *
-     * Useful for choosing a foreground text color that will be legible on this
-     * background.
+     * This is the maximum-contrast ("full contrast") picker — it always returns
+     * a pure black or white (or the supplied [light]/[dark] pair). Use [aa] or
+     * [aaa] when you want to stay visually close to the original hue.
      */
-    fun onColor(light: FullColor = WHITE, dark: FullColor = BLACK): FullColor {
+    fun fullContrast(light: FullColor = WHITE, dark: FullColor = BLACK): FullColor {
         val lightRatio = contrastRatio(light)
         val darkRatio = contrastRatio(dark)
         return if (lightRatio >= darkRatio) light else dark
@@ -551,6 +552,51 @@ class FullColor private constructor(
         }
         return candidate
     }
+
+    /**
+     * Return whether this color meets the WCAG AA normal-text contrast requirement
+     * (≥ 4.5:1) against [background].
+     */
+    fun isAa(background: FullColor): Boolean = contrastRatio(background) >= 4.5f
+
+    /**
+     * Return whether this color meets the WCAG AAA normal-text contrast requirement
+     * (≥ 7:1) against [background].
+     */
+    fun isAaa(background: FullColor): Boolean = contrastRatio(background) >= 7.0f
+
+    /**
+     * Return whether this color meets the WCAG AA large-text contrast requirement
+     * (≥ 3:1) against [background]. Large text is defined by WCAG as 18pt or 14pt bold.
+     */
+    fun isAaLargeText(background: FullColor): Boolean = contrastRatio(background) >= 3.0f
+
+    /**
+     * Return a lightness-adjusted version of this color that meets the WCAG AA
+     * normal-text contrast requirement (≥ 4.5:1) against [background].
+     *
+     * Unlike [fullContrast], this preserves the original hue and chroma as much as
+     * possible, only shifting lightness as needed.
+     */
+    fun aa(background: FullColor): FullColor = ensureContrast(background, 4.5f)
+
+    /**
+     * Return a lightness-adjusted version of this color that meets the WCAG AAA
+     * normal-text contrast requirement (≥ 7:1) against [background].
+     *
+     * Unlike [fullContrast], this preserves the original hue and chroma as much as
+     * possible, only shifting lightness as needed.
+     */
+    fun aaa(background: FullColor): FullColor = ensureContrast(background, 7.0f)
+
+    /**
+     * Return a lightness-adjusted version of this color that meets the WCAG AA
+     * large-text contrast requirement (≥ 3:1) against [background].
+     *
+     * Large text is defined by WCAG as 18pt (or 14pt bold). Use [aa] for
+     * normal-sized text.
+     */
+    fun aaLargeText(background: FullColor): FullColor = ensureContrast(background, 3.0f)
 
     // ── Object overrides ───────────────────────────────────────────────────────
 

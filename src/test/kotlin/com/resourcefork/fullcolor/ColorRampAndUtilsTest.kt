@@ -151,12 +151,12 @@ class ColorRampAndUtilsTest {
 
     @Test
     fun `dark grey on white passes WCAG AA large text`() {
-        assertTrue(ColorUtils.isWcagAaLargeCompliant(FullColor.fromRgb(90, 90, 90), FullColor.WHITE))
+        assertTrue(ColorUtils.isAaLargeTextCompliant(FullColor.fromRgb(90, 90, 90), FullColor.WHITE))
     }
 
     @Test
     fun `light grey on white fails WCAG AA large text`() {
-        assertFalse(ColorUtils.isWcagAaLargeCompliant(FullColor.fromRgb(200, 200, 200), FullColor.WHITE))
+        assertFalse(ColorUtils.isAaLargeTextCompliant(FullColor.fromRgb(200, 200, 200), FullColor.WHITE))
     }
 
     @Test

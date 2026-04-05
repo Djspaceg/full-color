@@ -50,7 +50,7 @@ object ColorUtils {
      * Determine whether [foreground] has sufficient WCAG AA contrast against [background]
      * for large text (≥ 18pt or 14pt bold). Large text requires a contrast ratio of at least 3:1.
      */
-    fun isWcagAaLargeCompliant(foreground: FullColor, background: FullColor): Boolean =
+    fun isAaLargeTextCompliant(foreground: FullColor, background: FullColor): Boolean =
         foreground.isAaLargeText(background)
 
     /**

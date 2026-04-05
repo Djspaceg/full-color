@@ -367,6 +367,17 @@ class FullColorManipulationTest {
     }
 
     @Test
+    fun `isAaaLargeText returns true for colors that pass 4 point 5 to 1`() {
+        assertTrue(FullColor.BLACK.isAaaLargeText(FullColor.WHITE))
+    }
+
+    @Test
+    fun `isAaaLargeText returns false for colors below 4 point 5 to 1`() {
+        val midGrey = FullColor.fromRgb(160, 160, 160)
+        assertFalse(midGrey.isAaaLargeText(FullColor.WHITE))
+    }
+
+    @Test
     fun `aa adjusts color to meet WCAG AA against background`() {
         val fg = FullColor.fromRgb(128, 128, 128)
         val bg = FullColor.WHITE
@@ -415,5 +426,22 @@ class FullColorManipulationTest {
         val bg = FullColor.WHITE
         val result = fg.aaLargeText(bg)
         assertTrue(result.contrastRatio(bg) >= 3.0f, "aaLargeText() result must meet 3:1 contrast")
+    }
+
+    @Test
+    fun `aaaLargeText adjusts color to meet 4 point 5 to 1 contrast`() {
+        val fg = FullColor.fromRgb(128, 128, 128)
+        val bg = FullColor.WHITE
+        val result = fg.aaaLargeText(bg)
+        assertTrue(result.contrastRatio(bg) >= 4.5f, "aaaLargeText() result must meet 4.5:1 contrast")
+    }
+
+    @Test
+    fun `aaaLargeText leaves already compliant color unchanged`() {
+        val fg = FullColor.BLACK
+        val bg = FullColor.WHITE
+        val result = fg.aaaLargeText(bg)
+        assertTrue(result.contrastRatio(bg) >= 4.5f)
+        assertEquals(fg, result, "aaaLargeText() should return the original color when it is already AAA large-text compliant")
     }
 }

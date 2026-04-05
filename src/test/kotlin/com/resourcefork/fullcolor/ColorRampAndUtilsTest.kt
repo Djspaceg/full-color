@@ -160,6 +160,16 @@ class ColorRampAndUtilsTest {
     }
 
     @Test
+    fun `black on white passes WCAG AAA large text`() {
+        assertTrue(ColorUtils.isAaaLargeTextCompliant(FullColor.BLACK, FullColor.WHITE))
+    }
+
+    @Test
+    fun `mid grey on white fails WCAG AAA large text`() {
+        assertFalse(ColorUtils.isAaaLargeTextCompliant(FullColor.fromRgb(160, 160, 160), FullColor.WHITE))
+    }
+
+    @Test
     fun `bestContrast picks black text on white background`() {
         val best = ColorUtils.bestContrast(FullColor.WHITE)
         val (r, g, b) = best.toRgb()

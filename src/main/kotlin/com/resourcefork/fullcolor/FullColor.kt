@@ -572,6 +572,12 @@ class FullColor private constructor(
     fun isAaLargeText(background: FullColor): Boolean = contrastRatio(background) >= 3.0f
 
     /**
+     * Return whether this color meets the WCAG AAA large-text contrast requirement
+     * (≥ 4.5:1) against [background]. Large text is defined by WCAG as 18pt or 14pt bold.
+     */
+    fun isAaaLargeText(background: FullColor): Boolean = contrastRatio(background) >= 4.5f
+
+    /**
      * Return a lightness-adjusted version of this color that meets the WCAG AA
      * normal-text contrast requirement (≥ 4.5:1) against [background].
      *
@@ -597,6 +603,15 @@ class FullColor private constructor(
      * normal-sized text.
      */
     fun aaLargeText(background: FullColor): FullColor = ensureContrast(background, 3.0f)
+
+    /**
+     * Return a lightness-adjusted version of this color that meets the WCAG AAA
+     * large-text contrast requirement (≥ 4.5:1) against [background].
+     *
+     * Large text is defined by WCAG as 18pt (or 14pt bold). Use [aaa] for
+     * normal-sized text.
+     */
+    fun aaaLargeText(background: FullColor): FullColor = ensureContrast(background, 4.5f)
 
     // ── Object overrides ───────────────────────────────────────────────────────
 

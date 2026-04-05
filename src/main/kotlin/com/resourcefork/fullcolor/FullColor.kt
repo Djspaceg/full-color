@@ -508,11 +508,11 @@ class FullColor private constructor(
 
     /**
      * Return whichever of [light] (default: [WHITE]) or [dark] (default: [BLACK])
-     * has the highest possible WCAG contrast against this color.
+     * has higher WCAG contrast against this color, choosing between the two candidates.
      *
-     * This is the maximum-contrast ("full contrast") picker — it always returns
-     * a pure black or white (or the supplied [light]/[dark] pair). Use [aa] or
-     * [aaa] when you want to stay visually close to the original hue.
+     * This picker selects the better-contrasting option from the supplied [light]/[dark]
+     * pair — it does not search for a globally optimal contrast color. Use [aa] or
+     * [aaa] when you want a nearby color that preserves hue and chroma.
      */
     fun fullContrast(light: FullColor = WHITE, dark: FullColor = BLACK): FullColor {
         val lightRatio = contrastRatio(light)

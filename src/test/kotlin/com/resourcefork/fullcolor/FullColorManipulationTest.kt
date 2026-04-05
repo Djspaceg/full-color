@@ -385,7 +385,14 @@ class FullColorManipulationTest {
 
     @Test
     fun `aa leaves already compliant color unchanged`() {
-        assertTrue(FullColor.BLACK.aa(FullColor.WHITE).contrastRatio(FullColor.WHITE) >= 4.5f)
+        val fg = FullColor.BLACK
+        val bg = FullColor.WHITE
+        val result = fg.aa(bg)
+        assertTrue(result.contrastRatio(bg) >= 4.5f)
+        assertEquals(fg.toRgb().red, result.toRgb().red, "aa() should preserve red for already compliant colors")
+        assertEquals(fg.toRgb().green, result.toRgb().green, "aa() should preserve green for already compliant colors")
+        assertEquals(fg.toRgb().blue, result.toRgb().blue, "aa() should preserve blue for already compliant colors")
+        assertNear(fg.alpha, result.alpha, 0.001f, "aa() should preserve alpha for already compliant colors")
     }
 
     @Test

@@ -29,7 +29,7 @@ A Kotlin-based color utility library with wide-gamut **OKLab** color space suppo
 **Gradle (Kotlin DSL):**
 ```kotlin
 dependencies {
-    implementation("com.resourcefork:full-color:1.0.0")
+    implementation("com.resourcefork:full-color:1.2.1")
 }
 ```
 
@@ -38,7 +38,7 @@ dependencies {
 <dependency>
     <groupId>com.resourcefork</groupId>
     <artifactId>full-color</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
